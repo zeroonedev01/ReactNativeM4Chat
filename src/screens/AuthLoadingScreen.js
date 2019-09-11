@@ -93,7 +93,7 @@ class AuthLoadingScreen extends Component {
     return (
       <View style={[styles.container, styles.horizontal]}>
         <ActivityIndicator size="large" color="#0000ff" />
-        <StatusBar barStyle="default" />
+        <StatusBar color="#0000ff" barStyle="default" />
       </View>
     );
   }

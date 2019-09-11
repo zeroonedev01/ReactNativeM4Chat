@@ -1,57 +1,49 @@
 import React, {Component} from 'react';
 import {
   StyleSheet,
+  TextInput,
+  FlatList,
   Text,
   View,
   TouchableOpacity,
+  SafeAreaView,
   Image,
-  Alert,
-  ScrollView,
-  TextInput,
-  FlatList,
-  Button,
   Dimensions,
-  KeyboardAvoidingView,
 } from 'react-native';
-import User from '../../User';
 import firebase from 'firebase';
-import firebaseApp from '../configs/firebaseConfig';
+import User from '../../User';
+import {GiftedChat} from 'react-native-gifted-chat';
 
 const {width, height} = Dimensions.get('window');
 export default class ChatScreen extends Component {
   static navigationOptions = ({navigation}) => {
     return {
-      title: navigation.getParam('email'),
+      title: navigation.getParam('fullname', null),
     };
   };
   constructor(props) {
     super(props);
     this.state = {
       person: {
+        uid: props.navigation.getParam('uid'),
         email: props.navigation.getParam('email'),
-        photo: '',
+        password: props.navigation.getParam('password'),
       },
       txtMsg: '',
       messages: [],
     };
   }
-  componentWillMount() {
-    firebaseApp
+  componentDidMount() {
+    let dbRef = firebase
       .database()
       .ref('messages')
-      .child(User.email)
-      .child(this.state.person.email)
-      .on('child_added', value => {
-        this.setState(prevState => {
-          return {
-            messages: [...prevState.messages, value.val()],
-          };
-        });
+      .child(User.id)
+      .child(this.state.person.uid)
+      .on('child_added', val => {
+        this.setState(previousState => ({
+          messages: GiftedChat.append(previousState.messages, val.val()),
+        }));
       });
-    firebaseApp
-      .database()
-      .ref('users/' + User.email)
-      .once('value', snap => this.setState({photo: snap.val().photo}));
   }
 
   renderRow = ({item}) => {
@@ -86,22 +78,27 @@ export default class ChatScreen extends Component {
       let msgId = firebase
         .database()
         .ref('messages')
-        .child(User.email)
-        .child(this.state.person.email)
+        .child(User.id)
+        .child(this.state.person.uid)
         .push().key;
       let updates = {};
       let message = {
-        message: this.state.txtMsg,
-        time: firebase.database.ServerValue.TIMESTAMP,
-        from: User.email,
+        _id: msgId,
+        text: this.state.txtMsg,
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
+        user: {
+          _id: User.id,
+          name: User.fullname,
+          avatar: User.avatar,
+        },
       };
       updates[
-        'messages/' + User.email + '/' + this.state.person.email + '/' + msgId
+        'messages/' + User.id + '/' + this.state.person.uid + '/' + msgId
       ] = message;
       updates[
-        'messages/' + this.state.person.email + '/' + User.email + '/' + msgId
+        'messages/' + this.state.person.uid + '/' + User.id + '/' + msgId
       ] = message;
-      firebaseApp
+      firebase
         .database()
         .ref()
         .update(updates);
@@ -112,35 +109,15 @@ export default class ChatScreen extends Component {
   render() {
     console.log(this.state.messages);
     return (
-      <View style={{flex: 1}}>
-        <FlatList
-          style={styles.list}
-          // extraData={this.state}
-          data={this.state.messages}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={this.renderRow}
-        />
-        <View style={styles.footer}>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.inputs}
-              placeholder="Write a message..."
-              underlineColorAndroid="transparent"
-              value={this.state.txtMsg}
-              onChangeText={this.handleChange('txtMsg')}
-            />
-          </View>
-
-          <TouchableOpacity style={styles.btnSend} onPress={this.sendMessage}>
-            <Image
-              source={{
-                uri: 'https://png.icons8.com/small/75/ffffff/filled-sent.png',
-              }}
-              style={styles.iconSend}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <GiftedChat
+        text={this.state.txtMsg}
+        onInputTextChanged={val => {
+          this.setState({txtMsg: val});
+        }}
+        messages={this.state.messages}
+        onSend={() => this.sendMessage()}
+        user={{_id: User.id}}
+      />
     );
   }
 }

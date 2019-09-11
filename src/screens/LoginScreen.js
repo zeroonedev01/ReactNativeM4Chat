@@ -8,9 +8,11 @@ import {
   Image,
   AsyncStorage,
   ActivityIndicator,
+  ToastAndroid,
 } from 'react-native';
 import firebase from 'firebase';
 import User from '../../User';
+import Geolocation from 'react-native-geolocation-service';
 
 export default class App extends Component {
   constructor(props) {
@@ -18,11 +20,79 @@ export default class App extends Component {
     this.state = {
       email: '',
       password: '',
+      // lat: '',
+      // long: '',
+      isLoading: false,
     };
   }
+  handleChange = key => val => {
+    this.setState({[key]: val});
+  };
+  async componentDidMount() {
+    console.log('ads');
+    await Geolocation.getCurrentPosition(
+      async response => {
+        console.log('Current Location:', response);
+        this.setState({
+          lat: response.coords.latitude,
+          long: response.coords.longitude,
+        });
+      },
+      error => {
+        return {error};
+      },
+    );
+  }
 
-  loginHandler = () => {
-    this.props.navigation.navigate('Home');
+  loginHandler = async () => {
+    if (this.state.email === '' || this.state.password === '') {
+      ToastAndroid.show('Please FIll all field', ToastAndroid.LONG);
+    } else {
+      this.setState({isLoading: true});
+      await firebase
+        .auth()
+        .signInWithEmailAndPassword(this.state.email, this.state.password)
+        .then(async response => {
+          let userf = firebase.auth().currentUser;
+          await AsyncStorage.setItem('uavatar', userf.photoURL);
+          await AsyncStorage.setItem('uid', response.user.uid);
+          User.id = await AsyncStorage.getItem('uid');
+          User.avatar = await AsyncStorage.getItem('uavatar');
+          // User.lat = this.state.lat;
+          // User.long = this.state.long;
+          // let updates = {};
+          // updates['users/' + userf.uid + '/lat'] = User.lat;
+          // updates['users/' + userf.uid + '/long'] = User.long;
+          // await firebase
+          //   .database()
+          //   .ref()
+          //   .update(updates);
+
+          ToastAndroid.show('Welcome back', ToastAndroid.LONG);
+          this.setState({isLoading: false});
+          this.props.navigation.navigate('App');
+        })
+        .catch(err => {
+          switch (err.code) {
+            case 'auth/user-not-found':
+              ToastAndroid.show('User Not Found ', ToastAndroid.LONG);
+              break;
+            case 'auth/invalid-email':
+              ToastAndroid.show('Wrong Password ', ToastAndroid.LONG);
+              break;
+            case 'auth/wrong-password':
+              ToastAndroid.show('Wrong Password ', ToastAndroid.LONG);
+              break;
+
+            default:
+              console.error(err);
+              ToastAndroid.show('Something wnet wromg', ToastAndroid.LONG);
+          }
+        })
+        .finally(() => {
+          this.setState({isLoading: false});
+        });
+    }
   };
 
   render() {
@@ -39,8 +109,9 @@ export default class App extends Component {
             <TextInput
               style={style.textInput}
               placeholder="Email"
-              onChangeText={this.changeEmail}
               keyboardType={'email-address'}
+              value={this.state.email}
+              onChangeText={this.handleChange('email')}
             />
           </View>
 
@@ -49,11 +120,16 @@ export default class App extends Component {
               secureTextEntry={true}
               style={style.textInput}
               placeholder="Password"
-              onChangeText={this.changePassword}
+              value={this.state.password}
+              onChangeText={this.handleChange('password')}
             />
           </View>
           <TouchableOpacity style={style.login} onPress={this.loginHandler}>
-            <Text style={{color: 'white', fontWeight: '500'}}>Log In</Text>
+            {this.state.isLoading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={{color: 'white', fontWeight: '500'}}>Log In</Text>
+            )}
           </TouchableOpacity>
           <View style={style.bottom}>
             <Text>

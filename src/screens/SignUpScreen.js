@@ -71,6 +71,7 @@ export default class App extends Component {
     } else if (!this.validateEmail()) {
       ToastAndroid.show('Email Not Valid', ToastAndroid.LONG);
     } else {
+      this.setState({isLoading: true});
       firebase
         .auth()
         .createUserWithEmailAndPassword(this.state.email, this.state.password)
@@ -111,6 +112,7 @@ export default class App extends Component {
             'Welcome ' + this.state.fullname,
             ToastAndroid.LONG,
           );
+          this.setState({isLoading: false});
           this.props.navigation.navigate('App');
         })
         .catch(err => {
@@ -133,6 +135,9 @@ export default class App extends Component {
             default:
               ToastAndroid.show('Error', err, ToastAndroid.LONG);
           }
+        })
+        .finally(() => {
+          this.setState({isLoading: false});
         });
     }
     // console.log(this.validateEmail());
@@ -193,7 +198,11 @@ export default class App extends Component {
             />
           </View>
           <TouchableOpacity style={style.login} onPress={this.registerHandler}>
-            <Text style={{color: 'white', fontWeight: '500'}}>Register</Text>
+            {this.state.isLoading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={{color: 'white', fontWeight: '500'}}>Register</Text>
+            )}
           </TouchableOpacity>
           <View style={style.bottom}>
             <Text>
