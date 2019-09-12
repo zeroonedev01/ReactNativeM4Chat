@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import firebase from 'firebase';
 import User from '../../User';
-import Geolocation from 'react-native-geolocation-service';
+// import Geolocation from 'react-native-geolocation-service';
 
 export default class App extends Component {
   constructor(props) {
@@ -28,28 +28,28 @@ export default class App extends Component {
   handleChange = key => val => {
     this.setState({[key]: val});
   };
-  async componentDidMount() {
-    console.log('ads');
-    await Geolocation.getCurrentPosition(
-      async response => {
-        console.log('Current Location:', response);
-        this.setState({
-          lat: response.coords.latitude,
-          long: response.coords.longitude,
-        });
-      },
-      error => {
-        return {error};
-      },
-    );
-  }
+  // async componentDidMount() {
+  //   console.log('ads');
+  //   await Geolocation.getCurrentPosition(
+  //     async response => {
+  //       console.log('Current Location:', response);
+  //       this.setState({
+  //         lat: response.coords.latitude,
+  //         long: response.coords.longitude,
+  //       });
+  //     },
+  //     error => {
+  //       return {error};
+  //     },
+  //   );
+  // }
 
-  loginHandler = async () => {
+  loginHandler = () => {
     if (this.state.email === '' || this.state.password === '') {
       ToastAndroid.show('Please FIll all field', ToastAndroid.LONG);
     } else {
       this.setState({isLoading: true});
-      await firebase
+      firebase
         .auth()
         .signInWithEmailAndPassword(this.state.email, this.state.password)
         .then(async response => {
@@ -86,10 +86,8 @@ export default class App extends Component {
 
             default:
               console.error(err);
-              ToastAndroid.show('Something wnet wromg', ToastAndroid.LONG);
+              ToastAndroid.show('Something went wrong', ToastAndroid.LONG);
           }
-        })
-        .finally(() => {
           this.setState({isLoading: false});
         });
     }

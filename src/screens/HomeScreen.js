@@ -1,172 +1,167 @@
 import React, {Component} from 'react';
 import {
-  SafeAreaView,
-  Text,
   View,
-  TouchableOpacity,
-  AsyncStorage,
+  Text,
   StyleSheet,
-  FlatList,
-  Image,
-  ToastAndroid,
+  alert,
+  Platform,
+  TouchableOpacity,
 } from 'react-native';
+import {Spinner} from 'native-base';
+import MapView, {
+  Marker,
+  AnimatedRegion,
+  Polyline,
+  PROVIDER_GOOGLE,
+} from 'react-native-maps';
+import Geolocation from 'react-native-geolocation-service';
 import firebase from 'firebase';
-// import firebaseApp from '../configs/firebaseConfig';
 import User from '../../User';
-export class HomeScreen extends Component {
+const LATITUDE_DELTA = 0.009;
+const LONGITUDE_DELTA = 0.009;
+const LATITUDE = -7.75847;
+const LONGITUDE = 110.378151;
+import haversine from 'haversine';
+class HomeScreen extends Component {
   constructor(props) {
     super(props);
-    this.state = {users: []};
+    this.state = {
+      latitude: LATITUDE,
+      longitude: LONGITUDE,
+      routeCoordinates: [],
+      distanceTravelled: 0,
+      prevLatLng: {},
+      coordinate: new AnimatedRegion({
+        latitude: LATITUDE,
+        longitude: LONGITUDE,
+        latitudeDelta: 0,
+        longitudeDelta: 0,
+      }),
+      users: [],
+    };
   }
-  static navigationOptions = {
-    title: 'MaCh4t',
-  };
   componentDidMount() {
-    const dbRef = firebase.database().ref('users');
-    dbRef.on('child_added', val => {
-      let person = val.val();
-      person.uid = val.key;
-      if (person.uid === User.id) {
-        User.fullname = person.fullname;
-        User.phonenumber = person.phonenumber;
-        User.avatar = person.avatar;
-        User.email = person.email;
-        User.password = person.password;
-        User.lat = person.lat;
-        User.long = person.long;
-      } else {
-        this.setState(prevState => {
-          return {
-            users: [...prevState.users, person],
-          };
+    // console.warn('sdsd', this.state);
+    const {coordinate} = this.state;
+    this.watchID = Geolocation.watchPosition(
+      position => {
+        const {routeCoordinates, distanceTravelled} = this.state;
+        const {latitude, longitude} = position.coords;
+
+        const newCoordinate = {
+          latitude,
+          longitude,
+        };
+
+        if (Platform.OS === 'android') {
+          if (this.marker) {
+            this.marker._component.animateMarkerToCoordinate(
+              newCoordinate,
+              500,
+            );
+          }
+        } else {
+          coordinate.timing(newCoordinate).start();
+        }
+
+        this.setState({
+          latitude,
+          longitude,
+          routeCoordinates: routeCoordinates.concat([newCoordinate]),
+          distanceTravelled:
+            distanceTravelled + this.calcDistance(newCoordinate),
+          prevLatLng: newCoordinate,
         });
-      }
-    });
-    dbRef.on('child_changed', val => {
-      let person = val.val();
-      person.uid = val.key;
-      if (person.uid !== User.id) {
-        this.setState(prevState => {
-          return {
-            users: prevState.users.map(user => {
-              if (user.uid === person.uid) {
-                user = person;
-              }
-              return user;
-            }),
-          };
-        });
-      }
-    });
-  }
-  // componentWillUnmount() {}
-  logOut = async () => {
-    await firebase.auth().signOut();
-    await AsyncStorage.clear();
-    this.props.navigation.navigate('Auth');
-  };
-  renderItem = ({item}) => {
-    return (
-      <TouchableOpacity
-        onPress={() => this.props.navigation.navigate('Chat', item)}>
-        {/* // onLongPress={() => this.props.navigation.navigate('Profile', item)}> */}
-        <View style={styles.row}>
-          <Image source={{uri: item.avatar}} style={styles.pic} />
-          <View>
-            <View style={styles.nameContainer}>
-              <Text
-                style={styles.nameTxt}
-                numberOfLines={1}
-                ellipsizeMode="tail">
-                {item.fullname}
-              </Text>
-              <Text style={styles.mblTxt}>Online</Text>
-            </View>
-            <View style={styles.msgContainer}>
-              <Text style={styles.msgTxt}>{item.phonenumber}</Text>
-            </View>
-          </View>
-        </View>
-      </TouchableOpacity>
+      },
+      error => console.log(error),
+      {
+        enableHighAccuracy: true,
+        timeout: 1500,
+        maximumAge: 1000,
+        distanceFilter: 10,
+      },
     );
+  }
+
+  componentWillUnmount() {
+    Geolocation.clearWatch(this.watchID);
+  }
+  calcDistance = newLatLng => {
+    const {prevLatLng} = this.state;
+    return haversine(prevLatLng, newLatLng) || 0;
   };
-  // renderRow = ({item}) => {
-  //   return (
-  //     <TouchableOpacity
-  //       style={{
-  //         padding: 10,
-  //         borderBottomColor: '#ccc',
-  //         borderBottomWidth: 1,
-  //       }}>
-  //       <Text style={{fontSize: 20}}>{item.email}1</Text>
-  //     </TouchableOpacity>
-  //   );
-  // };
+
+  getMapRegion = () => ({
+    latitude: this.state.latitude,
+    longitude: this.state.longitude,
+    latitudeDelta: LATITUDE_DELTA,
+    longitudeDelta: LONGITUDE_DELTA,
+  });
+
+  static navigationOptions = {
+    header: null,
+  };
   render() {
-    if (!this.state.users.length > 0) {
-      <Text>Lading</Text>;
-    }
-    console.log('User sekarnag', this.state.users[0]);
+    // console.warn(this.state);
     return (
-      <SafeAreaView>
-        <FlatList
-          data={this.state.users}
-          renderItem={this.renderItem}
-          keyExtractor={(item, index) => index.toString()}
-        />
-        <TouchableOpacity onPress={this.logOut}>
-          <Text>Logout</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
+      <View style={styles.container}>
+        <MapView
+          style={styles.map}
+          provider={PROVIDER_GOOGLE}
+          showUserLocation
+          followUserLocation
+          loadingEnabled
+          region={this.getMapRegion()}>
+          <Polyline coordinates={this.state.routeCoordinates} strokeWidth={5} />
+          <Marker.Animated
+            ref={marker => {
+              this.marker = marker;
+            }}
+            coordinate={this.state.coordinate}
+          />
+        </MapView>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={[styles.bubble, styles.button]}>
+            <Text style={styles.bottomBarContent}>
+              {parseFloat(this.state.distanceTravelled).toFixed(2)} km
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     );
   }
 }
+export default HomeScreen;
+
 const styles = StyleSheet.create({
   container: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  map: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  bubble: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  latlng: {
+    width: 200,
+    alignItems: 'stretch',
+  },
+  button: {
+    width: 80,
+    paddingHorizontal: 12,
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    marginHorizontal: 10,
   },
-  row: {
+  buttonContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    borderColor: '#DCDCDC',
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    padding: 10,
-  },
-  pic: {
-    borderRadius: 30,
-    width: 60,
-    height: 60,
-  },
-  nameContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: 280,
-  },
-  nameTxt: {
-    marginLeft: 15,
-    fontWeight: '600',
-    color: '#222',
-    fontSize: 18,
-    width: 170,
-  },
-  mblTxt: {
-    fontWeight: '200',
-    color: '#777',
-    fontSize: 13,
-  },
-  msgContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  msgTxt: {
-    fontWeight: '400',
-    color: '#008B8B',
-    fontSize: 12,
-    marginLeft: 15,
+    marginVertical: 20,
+    backgroundColor: 'transparent',
   },
 });
-export default HomeScreen;

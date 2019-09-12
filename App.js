@@ -17,6 +17,11 @@ const AppStack = createStackNavigator({
   Home: HomeScreen,
   Chat: ChatScreen,
 });
+
+const ChatStack = createStackNavigator({
+  ListChat: ListChatScreen,
+  Chat: ChatScreen,
+});
 const HomeBottom = createBottomTabNavigator(
   {
     Home: {
@@ -33,7 +38,7 @@ const HomeBottom = createBottomTabNavigator(
       },
     },
     ListChat: {
-      screen: ListChatScreen,
+      screen: ChatStack,
       navigationOptions: {
         tabBarLabel: 'Chat',
         tabBarIcon: ({tintColor}) => (
