@@ -6,14 +6,16 @@ import {
   alert,
   Platform,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import {Spinner} from 'native-base';
-import MapView, {
+import {
   Marker,
   AnimatedRegion,
   Polyline,
   PROVIDER_GOOGLE,
 } from 'react-native-maps';
+import MapView from 'react-native-map-clustering';
 import Geolocation from 'react-native-geolocation-service';
 import firebase from 'firebase';
 import User from '../../User';
@@ -78,13 +80,59 @@ class HomeScreen extends Component {
         enableHighAccuracy: true,
         timeout: 1500,
         maximumAge: 1000,
-        distanceFilter: 10,
+        distanceFilter: 1,
       },
     );
+
+    //get Data
+    let dbRef = firebase.database().ref('users');
+
+    dbRef.on('child_added', val => {
+      let person = val.val();
+      person.uid = val.key;
+      if (person.uid === User.id) {
+        User.fullname = person.fullname;
+        User.phonenumber = person.phonenumber;
+        User.avatar = person.avatar;
+        User.email = person.email;
+        User.password = person.password;
+      } else {
+        this.setState(prevState => {
+          return {
+            users: [...prevState.users, person],
+          };
+        });
+      }
+    });
+    dbRef.on('child_changed', val => {
+      let person = val.val();
+      person.uid = val.key;
+      if (person.uid !== User.id) {
+        this.setState(prevState => {
+          return {
+            users: prevState.users.map(user => {
+              if (user.uid === person.uid) {
+                user = person;
+              }
+              return user;
+            }),
+          };
+        });
+      }
+    });
+    let ref = firebase.database().ref('users/' + User.id);
+    ref.update({
+      status: 'online',
+    });
+    ref.onDisconnect().update({
+      status: 'offline',
+    });
   }
 
   componentWillUnmount() {
+    console.warn('fgf', this.watchID);
     Geolocation.clearWatch(this.watchID);
+    Geolocation.stopObserving();
   }
   calcDistance = newLatLng => {
     const {prevLatLng} = this.state;
@@ -102,7 +150,8 @@ class HomeScreen extends Component {
     header: null,
   };
   render() {
-    // console.warn(this.state);
+    // console.log(this.watchID);
+    // console.warn(this.state.users);
     return (
       <View style={styles.container}>
         <MapView
@@ -117,8 +166,27 @@ class HomeScreen extends Component {
             ref={marker => {
               this.marker = marker;
             }}
+            cluster={false}
             coordinate={this.state.coordinate}
+            pinColor={'blue'}
           />
+          {this.state.users.map((user, index) => {
+            return (
+              <Marker
+                key={index}
+                title={user.fullname}
+                description={user.phonenumber + '|' + user.status}
+                coordinate={{
+                  latitude: user.lat,
+                  longitude: user.long,
+                }}
+                pinColor={user.status === 'online' ? 'green' : 'red'}
+                onCalloutPress={() => {
+                  this.props.navigation.navigate('Chat', user);
+                }}
+              />
+            );
+          })}
         </MapView>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={[styles.bubble, styles.button]}>
@@ -163,5 +231,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginVertical: 20,
     backgroundColor: 'transparent',
+  },
+  viewMap: {
+    width: 250,
+    height: 100,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  imgMap: {
+    width: 25,
+    height: 25,
+    flex: 1,
+  },
+  imgMaps: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 150,
   },
 });

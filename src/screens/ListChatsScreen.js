@@ -68,8 +68,8 @@ export class ListChatsScreen extends Component {
   renderItem = ({item}) => {
     return (
       <TouchableOpacity
-        onPress={() => this.props.navigation.navigate('Chat', item)}>
-        {/* // onLongPress={() => this.props.navigation.navigate('Profile', item)}> */}
+        onPress={() => this.props.navigation.navigate('Chat', item)}
+        onLongPress={() => this.props.navigation.navigate('Profile', item)}>
         <View style={styles.row}>
           <Image source={{uri: item.avatar}} style={styles.pic} />
           <View>
