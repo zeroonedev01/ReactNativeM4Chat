@@ -24,7 +24,8 @@ class SplashScreen extends React.Component {
           source={require('../assets/8.png')}
           style={{alignSelf: 'center'}}
         />
-        <Text style={styles.textStyles}>MaCh4t</Text>
+        <Text style={styles.textStyles}>Maps For Chat</Text>
+
         <Image
           source={require('../assets/Google_Heroes.gif')}
           style={styles.icon}
@@ -48,7 +49,12 @@ const styles = {
   },
   textStyles: {
     color: 'grey',
-    fontSize: 20,
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  textStyles1: {
+    color: 'grey',
+    fontSize: 18,
     fontWeight: 'bold',
   },
 };

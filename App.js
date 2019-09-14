@@ -10,6 +10,7 @@ import SplashScreen from './src/screens/SplashScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import ListChatScreen from './src/screens/ListChatsScreen';
+import FriendScreen from './src/screens/FriendProfile';
 
 import {Icon} from 'native-base';
 
@@ -21,6 +22,7 @@ const AppStack = createStackNavigator({
 const ChatStack = createStackNavigator({
   ListChat: ListChatScreen,
   Chat: ChatScreen,
+  Friend: FriendScreen,
 });
 const HomeBottom = createBottomTabNavigator(
   {

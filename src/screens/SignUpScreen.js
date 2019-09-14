@@ -25,6 +25,7 @@ export default class App extends Component {
       password: '',
       long: '',
       lat: '',
+      isLoading: false,
     };
   }
   async componentDidMount() {
@@ -100,6 +101,7 @@ export default class App extends Component {
               avatar: this.state.avatar,
               long: this.state.long,
               lat: this.state.lat,
+              status: 'online',
             });
 
           User.lat = this.state.lat;
@@ -135,8 +137,6 @@ export default class App extends Component {
             default:
               ToastAndroid.show('Error', err, ToastAndroid.LONG);
           }
-        })
-        .finally(() => {
           this.setState({isLoading: false});
         });
     }

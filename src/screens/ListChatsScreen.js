@@ -10,6 +10,8 @@ import {
   Image,
   ToastAndroid,
 } from 'react-native';
+import {Icon} from 'native-base';
+
 import firebase from 'firebase';
 // import firebaseApp from '../configs/firebaseConfig';
 import User from '../../User';
@@ -18,8 +20,24 @@ export class ListChatsScreen extends Component {
     super(props);
     this.state = {users: []};
   }
-  static navigationOptions = {
-    title: 'MaCh4t',
+  static navigationOptions = ({navigation}) => {
+    return {
+      headerRight: (
+        <Icon
+          type="MaterialCommunityIcons"
+          name="dots-vertical"
+          style={{color: 'white'}}
+        />
+      ),
+      headerTintColor: '#fff',
+      headerTitleStyle: {
+        fontWeight: 'bold',
+      },
+      headerStyle: {
+        backgroundColor: '#2980b9',
+      },
+      title: 'M4Chat',
+    };
   };
   componentDidMount() {
     const dbRef = firebase.database().ref('users');
@@ -60,16 +78,12 @@ export class ListChatsScreen extends Component {
     });
   }
   // componentWillUnmount() {}
-  logOut = async () => {
-    await firebase.auth().signOut();
-    await AsyncStorage.clear();
-    this.props.navigation.navigate('Auth');
-  };
+
   renderItem = ({item}) => {
     return (
       <TouchableOpacity
         onPress={() => this.props.navigation.navigate('Chat', item)}
-        onLongPress={() => this.props.navigation.navigate('Profile', item)}>
+        onLongPress={() => this.props.navigation.navigate('Friend', item)}>
         <View style={styles.row}>
           <Image source={{uri: item.avatar}} style={styles.pic} />
           <View>
@@ -80,10 +94,10 @@ export class ListChatsScreen extends Component {
                 ellipsizeMode="tail">
                 {item.fullname}
               </Text>
-              <Text style={styles.mblTxt}>Online</Text>
+              <Text style={styles.mblTxt}>Today</Text>
             </View>
             <View style={styles.msgContainer}>
-              <Text style={styles.msgTxt}>{item.phonenumber}</Text>
+              <Text style={styles.msgTxt}>{item.status}</Text>
             </View>
           </View>
         </View>
@@ -114,9 +128,6 @@ export class ListChatsScreen extends Component {
           renderItem={this.renderItem}
           keyExtractor={(item, index) => index.toString()}
         />
-        <TouchableOpacity onPress={this.logOut}>
-          <Text>Logout</Text>
-        </TouchableOpacity>
       </SafeAreaView>
     );
   }

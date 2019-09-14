@@ -10,14 +10,29 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
+import {Icon} from 'native-base';
 import firebase from 'firebase';
 import User from '../../User';
 import {GiftedChat} from 'react-native-gifted-chat';
-
+import {mainColor} from '../components/Constants';
 const {width, height} = Dimensions.get('window');
 export default class ChatScreen extends Component {
   static navigationOptions = ({navigation}) => {
     return {
+      headerRight: (
+        <Icon
+          type="MaterialCommunityIcons"
+          name="dots-vertical"
+          style={{color: 'white'}}
+        />
+      ),
+      headerTintColor: '#fff',
+      headerTitleStyle: {
+        fontWeight: 'bold',
+      },
+      headerStyle: {
+        backgroundColor: '#2980b9',
+      },
       title: navigation.getParam('fullname', null),
     };
   };
@@ -28,6 +43,7 @@ export default class ChatScreen extends Component {
         uid: props.navigation.getParam('uid'),
         email: props.navigation.getParam('email'),
         password: props.navigation.getParam('password'),
+        avatar: props.navigation.getParam('avatar'),
       },
       txtMsg: '',
       messages: [],

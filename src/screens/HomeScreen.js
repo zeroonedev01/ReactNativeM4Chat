@@ -9,20 +9,20 @@ import {
   Image,
 } from 'react-native';
 import {Spinner} from 'native-base';
-import {
+import MapView, {
   Marker,
   AnimatedRegion,
   Polyline,
   PROVIDER_GOOGLE,
 } from 'react-native-maps';
-import MapView from 'react-native-map-clustering';
+// import MapView from 'react-native-map-clustering';
 import Geolocation from 'react-native-geolocation-service';
 import firebase from 'firebase';
 import User from '../../User';
 const LATITUDE_DELTA = 0.009;
 const LONGITUDE_DELTA = 0.009;
-const LATITUDE = -7.75847;
-const LONGITUDE = 110.378151;
+const LATITUDE = 34.086231;
+const LONGITUDE = -118.384939;
 import haversine from 'haversine';
 class HomeScreen extends Component {
   constructor(props) {
@@ -74,6 +74,13 @@ class HomeScreen extends Component {
             distanceTravelled + this.calcDistance(newCoordinate),
           prevLatLng: newCoordinate,
         });
+        firebase
+          .database()
+          .ref('users/' + User.id)
+          .update({
+            lat: position.coords.latitude,
+            long: position.coords.longitude,
+          });
       },
       error => console.log(error),
       {
@@ -121,12 +128,20 @@ class HomeScreen extends Component {
       }
     });
     let ref = firebase.database().ref('users/' + User.id);
-    ref.update({
-      status: 'online',
-    });
-    ref.onDisconnect().update({
-      status: 'offline',
-    });
+    firebase
+      .database()
+      .ref('.info/connected')
+      .on('value', snapshot => {
+        if (snapshot.val() === false) {
+          return;
+        }
+        ref
+          .onDisconnect()
+          .update({status: 'offline'})
+          .then(() => {
+            ref.update({status: 'online'});
+          });
+      });
   }
 
   componentWillUnmount() {
@@ -161,14 +176,15 @@ class HomeScreen extends Component {
           followUserLocation
           loadingEnabled
           region={this.getMapRegion()}>
-          <Polyline coordinates={this.state.routeCoordinates} strokeWidth={5} />
+          {/* <Polyline coordinates={this.state.routeCoordinates} strokeWidth={5} /> */}
           <Marker.Animated
             ref={marker => {
               this.marker = marker;
             }}
-            cluster={false}
+            // cluster={false}
             coordinate={this.state.coordinate}
             pinColor={'blue'}
+            title="My Location"
           />
           {this.state.users.map((user, index) => {
             return (
@@ -188,13 +204,13 @@ class HomeScreen extends Component {
             );
           })}
         </MapView>
-        <View style={styles.buttonContainer}>
+        {/* <View style={styles.buttonContainer}>
           <TouchableOpacity style={[styles.bubble, styles.button]}>
             <Text style={styles.bottomBarContent}>
               {parseFloat(this.state.distanceTravelled).toFixed(2)} km
             </Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
     );
   }
