@@ -67,7 +67,9 @@ export default class ChatScreen extends Component {
       return (
         <View style={styles.eachMsg}>
           <Image
-            source={{uri: this.props.navigation.getParam('photo')}}
+            source={{
+              uri: this.props.navigation.getParam('photo'),
+            }}
             style={styles.userPic}
           />
           <View style={styles.msgBlock}>
@@ -85,6 +87,25 @@ export default class ChatScreen extends Component {
         </View>
       );
     }
+  };
+  sendNotification = data => {
+    let headers = {
+      'Content-Type': 'application/json; charset=utf-8',
+      Authorization: 'Basic MzkyODgyMTctMGJjYi00ZTM4LTg5YWYtNjc2MmQ0NjUwMTg2',
+    };
+
+    let endpoint = 'https://onesignal.com/api/v1/notifications';
+    let params = {
+      method: 'POST',
+      headers: headers,
+      port: 443,
+      body: JSON.stringify({
+        app_id: 'ea995593-04bb-49e5-8e1c-6f34f33cb271',
+        include_player_ids: [`${this.props.navigation.getParam('IDPhone')}`],
+        contents: {en: data},
+      }),
+    };
+    fetch(endpoint, params).then(res => console.log(res));
   };
   handleChange = key => val => {
     this.setState({[key]: val});
@@ -108,6 +129,8 @@ export default class ChatScreen extends Component {
           avatar: User.avatar,
         },
       };
+      this.sendNotification('Ada SMS SayanK');
+
       updates[
         'messages/' + User.id + '/' + this.state.person.uid + '/' + msgId
       ] = message;

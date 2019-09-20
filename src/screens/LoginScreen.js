@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import firebase from 'firebase';
 import User from '../../User';
+import DeviceId from '../Publics/store/deviceId';
 // import Geolocation from 'react-native-geolocation-service';
 
 export default class App extends Component {
@@ -23,26 +24,17 @@ export default class App extends Component {
       // lat: '',
       // long: '',
       isLoading: false,
+      idponsel: '',
     };
   }
   handleChange = key => val => {
     this.setState({[key]: val});
   };
-  // async componentDidMount() {
-  //   console.log('ads');
-  //   await Geolocation.getCurrentPosition(
-  //     async response => {
-  //       console.log('Current Location:', response);
-  //       this.setState({
-  //         lat: response.coords.latitude,
-  //         long: response.coords.longitude,
-  //       });
-  //     },
-  //     error => {
-  //       return {error};
-  //     },
-  //   );
-  // }
+  async componentDidMount() {
+    const idponsel = await AsyncStorage.getItem('idponsel');
+    this.setState({idponsel});
+    // console.warn(this.state.idponsel);
+  }
 
   loginHandler = () => {
     if (this.state.email === '' || this.state.password === '') {
@@ -67,7 +59,11 @@ export default class App extends Component {
           //   .database()
           //   .ref()
           //   .update(updates);
-
+          console.warn(this.state.idponsel);
+          firebase
+            .database()
+            .ref('users/' + User.id)
+            .update({IDPhone: this.state.idponsel});
           ToastAndroid.show('Welcome back', ToastAndroid.LONG);
           this.setState({isLoading: false});
           this.props.navigation.navigate('App');

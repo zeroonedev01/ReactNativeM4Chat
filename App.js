@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import {AsyncStorage} from 'react-native';
 import {createAppContainer, createSwitchNavigator} from 'react-navigation';
 import {createStackNavigator} from 'react-navigation-stack';
 import {createBottomTabNavigator} from 'react-navigation-tabs';
@@ -11,9 +12,10 @@ import SignUpScreen from './src/screens/SignUpScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import ListChatScreen from './src/screens/ListChatsScreen';
 import FriendScreen from './src/screens/FriendProfile';
-
+import OneSignal from 'react-native-onesignal';
 import {Icon} from 'native-base';
-
+import audio from 'react-native-sound';
+import DeviceId from './src/Publics/store/deviceId';
 const AppStack = createStackNavigator({
   Home: HomeScreen,
   Chat: ChatScreen,
@@ -110,6 +112,47 @@ const AppRoot = createAppContainer(
   ),
 );
 export default class App extends Component {
+  constructor(properties) {
+    super(properties);
+    OneSignal.init('ea995593-04bb-49e5-8e1c-6f34f33cb271');
+
+    OneSignal.addEventListener('received', this.onReceived);
+    OneSignal.addEventListener('opened', this.onOpened);
+    OneSignal.addEventListener('ids', this.onIds);
+    OneSignal.enableSound(false);
+    OneSignal.inFocusDisplaying(2);
+    OneSignal.enableVibrate(true);
+  }
+
+  componentWillUnmount() {
+    OneSignal.removeEventListener('received', this.onReceived);
+    OneSignal.removeEventListener('opened', this.onOpened);
+    OneSignal.removeEventListener('ids', this.onIds);
+  }
+
+  onReceived(notification) {
+    console.log('Notification received: ', notification);
+    const notif = new audio('onichan.mp3', audio.MAIN_BUNDLE, err => {
+      if (err) {
+        return;
+      }
+      notif.play();
+    });
+  }
+
+  onOpened(openResult) {
+    console.log('Message: ', openResult.notification.payload.body);
+    console.log('Data: ', openResult.notification.payload.additionalData);
+    console.log('isActive: ', openResult.notification.isAppInFocus);
+    console.log('openResult: ', openResult);
+  }
+
+  onIds(device) {
+    console.log('Device info: ', device);
+    DeviceId.IDPonsel = device.userId;
+    AsyncStorage.setItem('idponsel', device.userId);
+    console.warn(DeviceId.IDPonsel);
+  }
   render() {
     return <AppRoot />;
   }
