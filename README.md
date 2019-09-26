@@ -72,7 +72,7 @@ Download the APK [`here`](https://drive.google.com/file/d/1V8yKkaA40Oo8_DIJ_TrQP
 
 ## Demo App
 
-Download the APK [`here`](https://www.youtube.com/watch?v=y_dS5pjDrNA)
+Demo the APK [`here`](https://www.youtube.com/watch?v=y_dS5pjDrNA)
 
 ## Contributor
 
