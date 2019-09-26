@@ -3,7 +3,6 @@ import {View, StyleSheet, Platform} from 'react-native';
 import MapView, {
   Marker,
   AnimatedRegion,
-  Polyline,
   PROVIDER_GOOGLE,
 } from 'react-native-maps';
 // import MapView from 'react-native-map-clustering';
