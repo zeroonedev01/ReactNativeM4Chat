@@ -1,14 +1,5 @@
 import React, {Component} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  alert,
-  Platform,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
-import {Spinner} from 'native-base';
+import {View, StyleSheet, Platform} from 'react-native';
 import MapView, {
   Marker,
   AnimatedRegion,
