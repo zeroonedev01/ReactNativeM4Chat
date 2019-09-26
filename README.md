@@ -1,6 +1,6 @@
 <h1 align="center">M4Chat</h1>
 <p align='center'>
-  <img src='https://res.cloudinary.com/zerefweismann/image/upload/c_scale,h_500/v1569465469/o5wb00thy09ffifr9ksn.png' />
+  <img src='https://res.cloudinary.com/zerefweismann/image/upload/c_scale,w_256/v1569465469/o5wb00thy09ffifr9ksn.png' />
   </a>
 </p>
 <p align="center">
