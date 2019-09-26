@@ -114,7 +114,7 @@ const AppRoot = createAppContainer(
 export default class App extends Component {
   constructor(properties) {
     super(properties);
-    OneSignal.init('ea995593-04bb-49e5-8e1c-6f34f33cb271');
+    OneSignal.init('d78bd285-678f-429b-9b7e-1a8588d4a279');
 
     OneSignal.addEventListener('received', this.onReceived);
     OneSignal.addEventListener('opened', this.onOpened);

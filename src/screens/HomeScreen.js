@@ -187,16 +187,17 @@ class HomeScreen extends Component {
             title="My Location"
           />
           {this.state.users.map((user, index) => {
+            console.log(index, user.status);
             return (
               <Marker
-                key={index}
+                pinColor={user.status == 'online' ? 'green' : 'red'}
+                key={`${index}-${user.status}`}
                 title={user.fullname}
                 description={user.phonenumber + '|' + user.status}
                 coordinate={{
                   latitude: user.lat,
                   longitude: user.long,
                 }}
-                pinColor={user.status === 'online' ? 'green' : 'red'}
                 onCalloutPress={() => {
                   this.props.navigation.navigate('Chat', user);
                 }}

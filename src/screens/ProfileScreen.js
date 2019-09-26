@@ -77,7 +77,8 @@ class UserProfileView extends Component {
   };
   handleLogOut = async () => {
     await firebase.auth().signOut();
-    await AsyncStorage.clear();
+    await AsyncStorage.removeItem('uid');
+    await AsyncStorage.removeItem('uavatar');
     firebase
       .database()
       .ref('users/' + User.id)

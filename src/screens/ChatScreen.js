@@ -91,7 +91,7 @@ export default class ChatScreen extends Component {
   sendNotification = data => {
     let headers = {
       'Content-Type': 'application/json; charset=utf-8',
-      Authorization: 'Basic MzkyODgyMTctMGJjYi00ZTM4LTg5YWYtNjc2MmQ0NjUwMTg2',
+      Authorization: 'Basic Njg1ZjQ3ZDEtOGRhNC00YmViLWFjMDAtYThhMTE4OWY4MDIw',
     };
 
     let endpoint = 'https://onesignal.com/api/v1/notifications';
@@ -100,7 +100,7 @@ export default class ChatScreen extends Component {
       headers: headers,
       port: 443,
       body: JSON.stringify({
-        app_id: 'ea995593-04bb-49e5-8e1c-6f34f33cb271',
+        app_id: 'd78bd285-678f-429b-9b7e-1a8588d4a279',
         include_player_ids: [`${this.props.navigation.getParam('IDPhone')}`],
         contents: {en: data},
       }),
@@ -129,7 +129,7 @@ export default class ChatScreen extends Component {
           avatar: User.avatar,
         },
       };
-      this.sendNotification('Ada SMS SayanK');
+      this.sendNotification('You have new Message from: ' + User.fullname);
 
       updates[
         'messages/' + User.id + '/' + this.state.person.uid + '/' + msgId

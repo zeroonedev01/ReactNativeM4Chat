@@ -25,11 +25,14 @@ export default class App extends Component {
       password: '',
       long: '',
       lat: '',
+      idponsel: '',
       isLoading: false,
     };
   }
   async componentDidMount() {
     console.log('ads');
+    const idponsel = await AsyncStorage.getItem('idponsel');
+    this.setState({idponsel});
     await Geolocation.getCurrentPosition(
       async response => {
         console.log('Current Location:', response);
@@ -51,7 +54,9 @@ export default class App extends Component {
     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(this.state.email).toLowerCase());
   };
-
+  checkURL = () => {
+    return this.state.avatar.match(/\.(jpeg|jpg|gif|png)$/) != null;
+  };
   registerHandler = () => {
     if (
       this.state.fullname === '' ||
@@ -69,8 +74,15 @@ export default class App extends Component {
         'Phone Number minimum 10 character and maximum 13 character',
         ToastAndroid.LONG,
       );
+    } else if (!this.checkURL()) {
+      ToastAndroid.show('Image Url invalid', ToastAndroid.LONG);
     } else if (!this.validateEmail()) {
       ToastAndroid.show('Email Not Valid', ToastAndroid.LONG);
+    } else if (this.state.lat == '' || this.state.long == '') {
+      this.setState({
+        lat: '34.086231',
+        long: '-118.384939',
+      });
     } else {
       this.setState({isLoading: true});
       firebase
@@ -96,6 +108,7 @@ export default class App extends Component {
             .database()
             .ref('users/' + response.user.uid)
             .set({
+              IDPhone: this.state.idponsel,
               fullname: this.state.fullname,
               phonenumber: this.state.phonenumber,
               avatar: this.state.avatar,

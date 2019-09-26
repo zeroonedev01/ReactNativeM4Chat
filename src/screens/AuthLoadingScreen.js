@@ -7,10 +7,11 @@ import {
   StyleSheet,
   ToastAndroid,
   PermissionsAndroid,
+  Platform,
 } from 'react-native';
 import User from '../../User';
 import firebase from 'firebase';
-// import firebaseApp from '../configs/firebaseConfig';
+import LocationServicesDialogBox from 'react-native-android-location-services-dialog-box';
 class AuthLoadingScreen extends Component {
   constructor(props) {
     super(props);
@@ -39,12 +40,22 @@ class AuthLoadingScreen extends Component {
       //   },
       // );
       if (status === PermissionsAndroid.RESULTS.GRANTED) {
-        ToastAndroid.show('Location permission granted.', ToastAndroid.LONG);
+        if (Platform.OS === 'android') {
+          LocationServicesDialogBox.checkLocationServicesIsEnabled({
+            message:
+              '<h2>Use Location?</h2> \
+                            This app wants to change your device settings:<br/><br/>\
+                            Please, Use GPS for location<br/><br/>',
+            ok: 'YES',
+            cancel: 'NO',
+          })
+            .then(async () => {})
+            .catch(err => {
+              console.log(err);
+            });
+        }
       } else if (status === PermissionsAndroid.RESULTS.DENIED) {
-        ToastAndroid.show(
-          'Location permission denied by user.',
-          ToastAndroid.LONG,
-        );
+        this.requestLocationPermission();
       } else if (status === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
         ToastAndroid.show(
           'Location permission revoked by user.',
@@ -56,7 +67,6 @@ class AuthLoadingScreen extends Component {
     }
   };
   componentDidMount() {
-    firebase.apps;
     if (!firebase.apps.length) {
       console.log('sayank');
       firebase.initializeApp({

@@ -60,7 +60,7 @@ export default class App extends Component {
           //   .ref()
           //   .update(updates);
           console.warn(this.state.idponsel);
-          firebase
+          await firebase
             .database()
             .ref('users/' + User.id)
             .update({IDPhone: this.state.idponsel});
