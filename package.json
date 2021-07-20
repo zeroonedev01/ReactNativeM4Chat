@@ -12,7 +12,7 @@
     "haversine": "^1.1.1",
     "native-base": "^2.13.7",
     "react": "16.8.6",
-    "react-native": "0.60.5",
+    "react-native": "0.62.3",
     "react-native-android-location-services-dialog-box": "^2.8.2",
     "react-native-geolocation-service": "^3.1.0",
     "react-native-gesture-handler": "^1.4.1",
